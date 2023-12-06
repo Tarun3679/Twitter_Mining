@@ -37,18 +37,20 @@ for item in processed_data:
 
 import re
 
+def extract_pattern(input_data):
+    output_data = []
+    pattern = r'% [a-zA-Z]+ [a-zA-Z]\/[a-zA-Z]'
+
+    for item in input_data:
+        match = re.search(pattern, item)
+        if match:
+            output_data.append(match.group())
+        else:
+            output_data.append(item)
+
+    return output_data
+
+# Example usage:
 input_data = ['YearQuater:', 'Revenue', '% chg g/g % chg g/g', 'Profit % ab/cd']
-
-output_data = []
-
-pattern = r'% [a-zA-Z]+ [a-zA-Z]\/[a-zA-Z]'
-
-for item in input_data:
-    match = re.search(pattern, item)
-    if match:
-        output_data.append(match.group())
-    else:
-        output_data.append(item)
-
+output_data = extract_pattern(input_data)
 print(output_data)
-
