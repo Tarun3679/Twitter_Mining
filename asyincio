@@ -2,9 +2,18 @@ import aiohttp
 import asyncio
 import os
 
+# Custom headers (replace with your headers)
+custom_headers = {
+    "User-Agent": "Your User Agent",
+    "Authorization": "Bearer YourAccessToken",  # Add any other headers you need
+}
+
+# Custom certificate verification options (replace with your certificate configuration)
+ssl_context = aiohttp.FakeSslContext()  # Modify this according to your certificate requirements
+
 async def download_pdf(session, url, output_folder):
     try:
-        async with session.get(url) as response:
+        async with session.get(url, headers=custom_headers, ssl=ssl_context) as response:
             if response.status == 200 and response.headers.get("content-type") == "application/pdf":
                 pdf_content = await response.read()
                 filename = os.path.join(output_folder, url.split("/")[-1])
