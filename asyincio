@@ -1,0 +1,43 @@
+import aiohttp
+import asyncio
+import os
+
+async def download_pdf(session, url, output_folder):
+    try:
+        async with session.get(url) as response:
+            if response.status == 200 and response.headers.get("content-type") == "application/pdf":
+                pdf_content = await response.read()
+                filename = os.path.join(output_folder, url.split("/")[-1])
+                with open(filename, "wb") as f:
+                    f.write(pdf_content)
+                print(f"Downloaded: {url}")
+    except Exception as e:
+        print(f"Error downloading {url}: {str(e)}")
+
+async def main(urls, output_folder, max_concurrent_requests):
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        semaphore = asyncio.Semaphore(max_concurrent_requests)
+
+        for url in urls:
+            async with semaphore:
+                task = asyncio.ensure_future(download_pdf(session, url, output_folder))
+                tasks.append(task)
+
+        await asyncio.gather(*tasks)
+
+if __name__ == "__main__":
+    urls = [
+        # List of your 2000 PDF URLs goes here
+        "https://example.com/pdf1.pdf",
+        "https://example.com/pdf2.pdf",
+        # Add more URLs
+    ]
+    output_folder = "downloaded_pdfs"
+    max_concurrent_requests = 5  # Adjust this to limit concurrent requests
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(urls, output_folder, max_concurrent_requests))
