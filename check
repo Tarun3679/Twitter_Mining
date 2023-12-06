@@ -33,3 +33,22 @@ input_data = [' ', 'Inv.', '2Q23 A',
 processed_data = process_data(input_data)
 for item in processed_data:
     print(item)
+
+
+import re
+
+input_data = ['YearQuater:', 'Revenue', '% chg g/g % chg g/g', 'Profit % ab/cd']
+
+output_data = []
+
+pattern = r'% [a-zA-Z]+ [a-zA-Z]\/[a-zA-Z]'
+
+for item in input_data:
+    match = re.search(pattern, item)
+    if match:
+        output_data.append(match.group())
+    else:
+        output_data.append(item)
+
+print(output_data)
+
