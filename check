@@ -3,14 +3,16 @@ import re
 data = [[' ','Inv.', '2Q23 A'],
         [' ','Inv. Banking','2Q 23 Vs Expectations FMR'],
         [' ','Inv. Bank', 'V. Prior Year/Quater 2Q22'],
-        ['Q3 Results:', 'Q3 Results', 'Q3  Results']]
+        ['Q3 Results:', 'Q3 Results', 'Q3  Results'],
+        [' ','Inv. Bank', 'V. Prior Year/Quater 2Q22', '2Q22A'],
+        [' ','Inv. Bank', 'V. Prior Year/Quater 2Q 22', '2Q 22 A']]
 
-pattern1 = r'(\d+)Q (\d{2})'  # Matches 2Q 23
-pattern2 = r'(\d+)Q(\d{2})'   # Matches 2Q23
-pattern3 = r'Q (\d{2})'       # Matches Q followed by a space and 2 digits
-pattern4 = r'Q(\d{2})'        # Matches Q followed by 2 digits without space
+pattern1 = r'(\d+)Q (\d{2})'     # Matches 2Q 23
+pattern2 = r'(\d+)Q(\d{2})'      # Matches 2Q23
+pattern3 = r'Q (\d{2})'          # Matches Q followed by a space and 2 digits
+pattern4 = r'Q(\d{2})'           # Matches Q followed by 2 digits without space
 pattern5 = r'Q(\d+) Results:? '  # Matches Q followed by a number, space, and "Results"
-pattern6 = r'Q(\d+) Results'     # Matches Q followed by a number and "Results"
+pattern6 = r'Q(\d+) Results'      # Matches Q followed by a number and "Results"
 
 for i in range(len(data)):
     data[i] = [re.sub(pattern1, r'YearQuarter', item) for item in data[i]]
