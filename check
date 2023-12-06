@@ -1,12 +1,13 @@
 import re
 
 def process_data(input_data):
-    pattern1 = r'(\d+)Q (\d{2})'     # Matches 2Q 23
-    pattern2 = r'(\d+)Q(\d{2})'      # Matches 2Q23
-    pattern3 = r'Q (\d{2})'          # Matches Q followed by a space and 2 digits
-    pattern4 = r'Q(\d{2})'           # Matches Q followed by 2 digits without space
-    pattern5 = r'Q(\d+) Results:? '  # Matches Q followed by a number, space, and "Results"
-    pattern6 = r'Q(\d+) Results'      # Matches Q followed by a number and "Results"
+    pattern1 = r'(\d+)Q (\d{2})'          # Matches 2Q 23
+    pattern2 = r'(\d+)Q(\d{2})'           # Matches 2Q23
+    pattern3 = r'Q (\d{2})'               # Matches Q followed by a space and 2 digits
+    pattern4 = r'Q(\d{2})'                # Matches Q followed by 2 digits without space
+    pattern5 = r'Q(\d+) Results:? '       # Matches Q followed by a number, space, and "Results"
+    pattern6 = r'Q(\d+) Results'           # Matches Q followed by a number and "Results"
+    pattern7 = r'[.,]'                    # Matches dots or commas
 
     processed_data = []
 
@@ -14,18 +15,20 @@ def process_data(input_data):
         processed_row = row
         for pattern in [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6]:
             processed_row = re.sub(pattern, r'YearQuarter', processed_row)
+        processed_row = re.sub(pattern7, '', processed_row)  # Remove dots and commas
         processed_row = re.sub(r'(\d+)Q', r'Quarter', processed_row)
         processed_row = re.sub(r'YearQuarter YearQuarter', r'YearQuarter', processed_row)  # Remove duplicate YearQuarter
         processed_data.append(processed_row)
 
     return processed_data
 
-input_data = [' ','Inv.', '2Q23 A',
-              ' ','Inv. Banking','2Q 23 Vs Expectations FMR',
-              ' ','Inv. Bank', 'V. Prior Year/Quater 2Q22',
-              'Q3 Results:', 'Q3 Results', 'Q3  Results',
-              ' ','Inv. Bank', 'V. Prior Year/Quater 2Q22', '2Q22A',
-              ' ','Inv. Bank', 'V. Prior Year/Quater 2Q 22', '2Q 22 A']
+input_data = [' ', 'Inv.', '2Q23 A',
+              ' ', 'Inv. Banking', '2Q 23 Vs Expectations FMR',
+              ' ', 'Inv. Bank', 'V. Prior Year/Quarter 2Q22',
+              'Q3 Results:', 'Q3 Results', 'Q3 Results',
+              ' ', 'Inv. Bank', 'V. Prior Year/Quarter 2Q22', '2Q22A',
+              ' ', 'Inv. Bank', 'V. Prior Year/Quarter 2Q 22', '2Q 22 A',
+              '1Q1.5', '2Q2,5']
 
 processed_data = process_data(input_data)
 for item in processed_data:
