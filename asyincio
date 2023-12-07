@@ -1,4 +1,4 @@
-import requests
+import aiohttp
 import asyncio
 import os
 
@@ -16,31 +16,39 @@ urls = [
 ]
 
 output_folder = "downloaded_pdfs"
+log_file = "downloaded_urls.log"  # Log file to store downloaded URLs
 max_concurrent_requests = 5  # Adjust this to limit concurrent requests
 
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
+# Create and configure a logger
+import logging
+
+logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(message)s')
+
 async def download_pdf(url):
     try:
-        response = requests.get(url, headers=custom_headers, stream=True)
-        if response.status_code == 200 and response.headers.get("content-type") == "application/pdf":
+        response = await session.get(url, headers=custom_headers, ssl=ssl_context)
+        if response.status == 200 and response.headers.get("content-type") == "application/pdf":
             filename = os.path.join(output_folder, url.split("/")[-1])
             with open(filename, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
+                async for chunk in response.content.iter_any(8192):  # Read and write in chunks
                     f.write(chunk)
             print(f"Downloaded: {url}")
+            logging.info(f"Downloaded: {url}")  # Log the downloaded URL
     except Exception as e:
         print(f"Error downloading {url}: {str(e)}")
 
 async def main():
     tasks = []
 
-    for url in urls:
-        task = asyncio.create_task(download_pdf(url))
-        tasks.append(task)
+    async with aiohttp.ClientSession() as session:
+        for url in urls:
+            task = asyncio.create_task(download_pdf(url))
+            tasks.append(task)
 
-    await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
