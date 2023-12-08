@@ -1,41 +1,79 @@
-async def async_textract_processing(bucket_name, document_keys):
+import asyncio
+import boto3
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+async def async_textract_processing(s3_paths):
     # Initialize Textract client
     textract_client = boto3.client('textract')
 
     tasks = []
-    for key in document_keys:
+    for s3_path in s3_paths:
+        # Extract bucket name and object key from the S3 path
+        bucket_name, object_key = extract_bucket_and_key(s3_path)
+
         # Create an asynchronous task for each document
-        task = asyncio.create_task(process_document(textract_client, bucket_name, key))
+        task = asyncio.create_task(process_document(textract_client, bucket_name, object_key))
         tasks.append(task)
 
     # Wait for all tasks to complete
     await asyncio.gather(*tasks)
 
-async def process_document(client, bucket_name, document_key):
-    response = await loop.run_in_executor(None, lambda: client.start_document_text_detection(
-        DocumentLocation={'S3Object': {'Bucket': bucket_name, 'Name': document_key}}
-    ))
-    job_id = response['JobId']
+def extract_bucket_and_key(s3_path):
+    # Remove the "s3://" prefix
+    s3_path = s3_path.replace('s3://', '')
 
+    # Split the path into bucket name and object key
+    parts = s3_path.split('/')
+    bucket_name = parts[0]
+    object_key = '/'.join(parts[1:])
+
+    return bucket_name, object_key
+
+async def process_document(client, bucket_name, object_key):
+    logger.info(f"Processing document: {object_key}")
+
+    # Call your custom call_textract function here
+    try:
+        result = call_textract(client, bucket_name, object_key)
+        logger.info(f"Document {object_key} processed!")
+        # Handle the result as needed
+        # You can access the text and other information from the result object.
+    except Exception as e:
+        logger.error(f"Error processing document {object_key}: {e}")
+
+def call_textract(client, bucket_name, object_key):
+    # Your custom code to call Textract and handle the response
+    response = client.start_document_text_detection(
+        DocumentLocation={'S3Object': {'Bucket': bucket_name, 'Name': object_key}}
+    )
+    
+    job_id = response['JobId']
+    
     # Poll for job completion
     while True:
-        response = await loop.run_in_executor(None, lambda: client.get_document_text_detection(JobId=job_id))
+        response = client.get_document_text_detection(JobId=job_id)
         status = response['JobStatus']
-
+        
         if status in ['SUCCEEDED', 'FAILED']:
             break
-        await asyncio.sleep(5)
-
-    # Handle the result, e.g., save it to a database or process it further
+        time.sleep(5)
+    
+    # Handle the result and return it
     # You can access the text and other information from the Textract response.
-    print(f"Document {document_key} processed!")
+    return response
 
 if __name__ == "__main__":
-    # Specify your S3 bucket name and document keys
-    bucket_name = 'your-s3-bucket-name'
-    document_keys = ['document1.pdf', 'document2.pdf']
+    # Specify your list of S3 paths to documents
+    s3_paths = [
+        's3://your-bucket-name/path/to/document1.pdf',
+        's3://your-bucket-name/path/to/document2.pdf',
+    ]
 
     # Create an event loop
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_textract_processing(bucket_name, document_keys))
+    loop.run_until_complete(async_textract_processing(s3_paths))
     loop.close()
